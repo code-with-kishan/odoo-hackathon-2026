@@ -1,36 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  --color-background: #ffffff;
-  --color-surface: #f7f6f3;
-  --color-surface-muted: #f0efed;
-  --color-border: #e3e2e0;
-  --color-border-soft: #edeeec;
-  --color-text-primary: #191919;
-  --color-text-muted: #615d59;
-  --color-text-subtle: #9b9a97;
-  --color-text-inverse: #f6f5f4;
-  --color-primary: #2383e2;
-  --color-primary-hover: #1a6dc4;
-  --color-link: #0075de;
-  --color-success: #2f9e44;
-  --color-warning: #e8a33d;
-  --color-danger: #e0393e;
-  --color-info: #2383e2;
+  /* Light Mode Design System (Curated Indigo & Slate) */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-soft: #f1f5f9;
+  
+  --color-text-primary: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-subtle: #94a3b8;
+  --color-text-inverse: #f8fafc;
+  
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-link: #3b82f6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  --motion-duration: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
 [data-theme="dark"] {
-  --color-background: #191919;
-  --color-surface: #202020;
-  --color-surface-muted: #2a2a2a;
-  --color-border: #373737;
-  --color-border-soft: #2e2e2e;
-  --color-text-primary: #e9e9e7;
-  --color-text-muted: #9b9a97;
-  --color-text-subtle: #6f6e6b;
-  --color-primary: #4599e8;
-  --color-link: #5aa6e8;
+  /* Dark Mode Design System (Apple Zinc & Midnight) */
+  --color-background: #09090b;
+  --color-surface: #121216;
+  --color-surface-muted: #1c1c24;
+  --color-border: #22222d;
+  --color-border-soft: #181820;
+  
+  --color-text-primary: #f4f4f5;
+  --color-text-muted: #a1a1aa;
+  --color-text-subtle: #52525b;
+  
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-link: #60a5fa;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
 }
 
 * {
@@ -38,7 +52,117 @@
 }
 
 body {
-  font-family: Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', Inter, ui-sans-serif, -apple-system, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s var(--motion-ease), color 0.3s var(--motion-ease);
+}
+
+/* Global Component Enhancements for Apple/Notion look and feel */
+
+section, .card {
+  border-radius: 16px !important;
+  border-color: var(--color-border) !important;
+  background-color: var(--color-surface) !important;
+  transition: transform var(--motion-duration) var(--motion-ease), 
+              box-shadow var(--motion-duration) var(--motion-ease), 
+              border-color var(--motion-duration) var(--motion-ease) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+section:hover, .card:hover {
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.04), 0 4px 12px -4px rgba(0, 0, 0, 0.02) !important;
+}
+
+[data-theme="dark"] section:hover, [data-theme="dark"] .card:hover {
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5) !important;
+  border-color: color-mix(in srgb, var(--color-border) 150%, transparent) !important;
+}
+
+input, select, textarea {
+  border-radius: 10px !important;
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  transition: border-color var(--motion-duration) var(--motion-ease), 
+              box-shadow var(--motion-duration) var(--motion-ease) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+}
+
+/* Table Enhancements */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+}
+
+th {
+  font-weight: 600 !important;
+  color: var(--color-text-muted) !important;
+  border-bottom: 2px solid var(--color-border) !important;
+}
+
+td {
+  border-bottom: 1px solid var(--color-border-soft) !important;
+  color: var(--color-text-primary) !important;
+}
+
+tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Sidebar and Navigation Enhancements */
+aside {
+  background-color: var(--color-surface) !important;
+  border-right: 1px solid var(--color-border) !important;
+  padding: 1.5rem !important;
+}
+
+aside h1 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  background: linear-gradient(to right, var(--color-primary), var(--color-link));
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 2rem !important;
+}
+
+aside a {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  padding: 0.6rem 0.8rem !important;
+  margin-bottom: 2px !important;
+  transition: all var(--motion-duration) var(--motion-ease) !important;
+}
+
+aside a:hover {
+  transform: translateX(3px);
+  background-color: var(--color-surface-muted) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Active sidebar link override */
+aside a[class*="bg-[var(--color-surface-muted)]"] {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
+  transform: translateX(3px);
+}
+
+[data-theme="dark"] aside a[class*="bg-[var(--color-surface-muted)]"] {
+  box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--color-primary) 45%, transparent) !important;
+}
+
+/* Topbar Enhancements */
+header {
+  background-color: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
 }
 
 /* Utilities required by the PRD */
@@ -47,11 +171,6 @@ body {
 }
 
 /* Small motion tokens for micro-interactions */
-:root {
-  --motion-duration: 180ms;
-  --motion-ease: cubic-bezier(.2,.9,.2,1);
-}
-
 .motion-fade {
   transition: opacity var(--motion-duration) var(--motion-ease), transform var(--motion-duration) var(--motion-ease);
 }
