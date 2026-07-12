@@ -190,11 +190,18 @@ export function TripCreateForm({
           placeholder="e.g. Move 450kg of cargo from Pune to Mumbai, ~160km, needs an HMV driver."
           className="mt-3 w-full rounded-[8px] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         />
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-3 flex-wrap">
           <Button onClick={runIntake} disabled={parsing || !nl.trim()}>
             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
             Parse with AI
           </Button>
+          <button 
+            type="button" 
+            onClick={() => setNl("Move 450kg of cargo from Pune to Mumbai, ~160km")} 
+            className="text-[12.5px] font-medium text-[var(--color-link)] hover:underline cursor-pointer"
+          >
+            Use demo query
+          </button>
           {fallbackMsg && <span className="text-[13px] text-[var(--color-warning)]">{fallbackMsg}</span>}
         </div>
       </Card>
