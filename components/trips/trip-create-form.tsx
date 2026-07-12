@@ -25,6 +25,14 @@ type CompareResult = {
   greedyCost: number;
 };
 
+const DEMO_PROMPTS = [
+  "Move 450kg of cargo from Pune to Mumbai, ~160km",
+  "Ship 600kg of medical supplies from Pune to Nashik, 210km",
+  "Deliver 900kg of machinery from Mumbai to Surat, 290km",
+  "Transport 350kg of electronics from Delhi to Jaipur, ~270km",
+  "Send 800kg of cargo from Bangalore to Chennai, 350km",
+];
+
 export function TripCreateForm({
   vehicles,
   drivers,
@@ -55,6 +63,13 @@ export function TripCreateForm({
   // Phase 5 comparison state
   const [compare, setCompare] = useState<CompareResult | null>(null);
   const [comparing, setComparing] = useState(false);
+
+  const selectRandomDemoPrompt = () => {
+    const filtered = DEMO_PROMPTS.filter((p) => p !== nl);
+    const list = filtered.length > 0 ? filtered : DEMO_PROMPTS;
+    const randomPrompt = list[Math.floor(Math.random() * list.length)];
+    setNl(randomPrompt);
+  };
 
   async function runIntake() {
     if (!nl.trim()) return;
@@ -197,7 +212,7 @@ export function TripCreateForm({
           </Button>
           <button 
             type="button" 
-            onClick={() => setNl("Move 450kg of cargo from Pune to Mumbai, ~160km")} 
+            onClick={selectRandomDemoPrompt} 
             className="text-[12.5px] font-medium text-[var(--color-link)] hover:underline cursor-pointer"
           >
             Use demo query
