@@ -70,3 +70,43 @@ body {
   transform: translateY(-2px) scale(1.01);
   transition: transform var(--motion-duration) var(--motion-ease);
 }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: var(--color-border); }
+  50% { border-color: var(--color-primary); }
+}
+
+.animate-float-1 {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float 6s ease-in-out infinite 1s;
+}
+
+.animate-float-3 {
+  animation: float 7s ease-in-out infinite 2s;
+}
+
+.animate-glow {
+  animation: border-glow 3s ease-in-out infinite;
+}
+
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at center, black, transparent 75%);
+}
+
+[data-theme="dark"] .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
