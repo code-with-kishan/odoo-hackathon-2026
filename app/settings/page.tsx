@@ -1,9 +1,10 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/auth/session";
 import { RoleMatrixButton } from "@/components/settings/role-matrix";
+import { LogoutButton } from "@/components/settings/logout-button";
+import { AdvancedSettingsCard } from "@/components/settings/advanced-settings";
 import { User, Mail, Shield } from "lucide-react";
 
 export default async function Page() {
@@ -74,18 +75,7 @@ export default async function Page() {
 
         {/* Advanced settings for Admin only */}
         {isAdmin ? (
-          <Card>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-[16px] font-medium text-[var(--color-text-primary)]">Advanced optimization</h3>
-                <p className="mt-1 text-[14px] text-[var(--color-text-muted)]">Expose optimizer weights, anomaly thresholds, and notification windows only when needed.</p>
-              </div>
-              <Badge tone="warning">Hidden by default</Badge>
-            </div>
-            <div className="mt-4 flex gap-3">
-              <Button>Enable advanced settings</Button>
-            </div>
-          </Card>
+          <AdvancedSettingsCard />
         ) : (
           <Card>
             <div className="flex items-center justify-between gap-4">
@@ -94,6 +84,19 @@ export default async function Page() {
                 <p className="mt-1 text-[14px] text-[var(--color-text-subtle)]">Administrative configurations are hidden for your role. Contact an administrator to adjust optimization weights or system thresholds.</p>
               </div>
               <Badge tone="warning">Restricted</Badge>
+            </div>
+          </Card>
+        )}
+
+        {/* Sign Out */}
+        {user && (
+          <Card>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-[16px] font-medium text-[var(--color-text-primary)]">Sign out</h3>
+                <p className="mt-1 text-[14px] text-[var(--color-text-muted)]">End your current session and return to the login page.</p>
+              </div>
+              <LogoutButton />
             </div>
           </Card>
         )}

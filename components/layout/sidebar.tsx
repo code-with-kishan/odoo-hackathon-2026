@@ -15,7 +15,7 @@ const items = [
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/reports", label: "Reports", icon: ShieldAlert },
   { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/settings", label: "Settings", icon: Settings, admin: true },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 function visible(role: RoleName, item: (typeof items)[number]) {
