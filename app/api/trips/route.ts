@@ -76,8 +76,18 @@ export async function PATCH(req: Request) {
   }
 
   if (body.action === "transition") {
-    const trip = await transitionTripStatus(body.tripId, body.status, guard.user!.id);
-    return NextResponse.json(trip);
+    const extra = body.status === "COMPLETED" ? {
+      odometerKm: body.odometerKm !== undefined ? Number(body.odometerKm) : undefined,
+      fuelLiters: body.fuelLiters !== undefined ? Number(body.fuelLiters) : undefined,
+      fuelCost: body.fuelCost !== undefined ? Number(body.fuelCost) : undefined,
+    } : undefined;
+
+    try {
+      const trip = await transitionTripStatus(body.tripId, body.status, guard.user!.id, extra);
+      return NextResponse.json(trip);
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
   }
 
   return NextResponse.json({ error: "Unsupported action" }, { status: 400 });

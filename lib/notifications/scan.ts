@@ -15,6 +15,7 @@ export type ScanOptions = {
   /** Look-ahead window for "expiring within N days" reminders. */
   expiryWindowDays?: number;
   now?: Date;
+  actorUserId?: string;
 };
 
 export type ScanResult = {
@@ -33,13 +34,54 @@ export async function runNotificationScan(opts: ScanOptions = {}): Promise<ScanR
 
   const items: ScanResult["items"] = [];
 
-  // 1. Driver license expiry — notify admins + each safety/manager role' first user.
-  const expiringDrivers = await prisma.driver.findMany({
-    where: { licenseExpiryDate: { gte: now, lte: horizon } },
-  });
   const admins = await prisma.user.findMany({
     include: { role: true },
     where: { role: { name: { in: ["ADMIN", "SAFETY_OFFICER", "FLEET_MANAGER"] } } },
+  });
+
+  const fallbackUser = await prisma.user.findFirst();
+  const actorId = opts.actorUserId ?? fallbackUser?.id ?? "";
+
+  // 0. Automated Driver License Suspension - set status to SUSPENDED if license is expired
+  const expiredDrivers = await prisma.driver.findMany({
+    where: { licenseExpiryDate: { lt: now }, status: { not: "SUSPENDED" } },
+  });
+
+  for (const d of expiredDrivers) {
+    await prisma.$transaction(async (tx) => {
+      await tx.driver.update({
+        where: { id: d.id },
+        data: { status: "SUSPENDED" }
+      });
+
+      if (actorId) {
+        await tx.auditLog.create({
+          data: {
+            actorUserId: actorId,
+            entity: "Driver",
+            entityId: d.id,
+            action: "AUTO_SUSPEND_EXPIRED_LICENSE",
+            beforeState: JSON.stringify({ status: d.status }),
+            afterState: JSON.stringify({ status: "SUSPENDED" }),
+          }
+        });
+      }
+    });
+
+    const title = dedupKey("LICENSE_EXPIRY", d.id, "expired-suspend");
+    for (const u of admins) {
+      items.push({
+        type: "LICENSE_EXPIRY",
+        title,
+        body: `Driver ${d.name}'s license expired. Status automatically transitioned to SUSPENDED.`,
+        userId: u.id,
+      });
+    }
+  }
+
+  // 1. Driver license expiry — notify admins + each safety/manager role' first user.
+  const expiringDrivers = await prisma.driver.findMany({
+    where: { licenseExpiryDate: { gte: now, lte: horizon } },
   });
 
   for (const d of expiringDrivers) {

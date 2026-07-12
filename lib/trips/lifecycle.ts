@@ -58,7 +58,12 @@ export async function dispatchTrip(tripId: string, actorUserId: string) {
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }
 
-export async function transitionTripStatus(tripId: string, nextStatus: TripStatus, actorUserId: string) {
+export async function transitionTripStatus(
+  tripId: string, 
+  nextStatus: TripStatus, 
+  actorUserId: string,
+  extra?: { odometerKm?: number; fuelLiters?: number; fuelCost?: number }
+) {
   return prisma.$transaction(async (tx) => {
     const trip = await tx.trip.findUnique({ where: { id: tripId }, include: { vehicle: true, driver: true } });
     if (!trip) throw new Error("Trip not found.");
@@ -68,7 +73,15 @@ export async function transitionTripStatus(tripId: string, nextStatus: TripStatu
     const updated = await tx.trip.update({ where: { id: tripId }, data: { status: nextStatus } });
 
     if (["COMPLETED", "CANCELLED"].includes(nextStatus) && trip.vehicleId && trip.driverId) {
-      const updatedVehicle = await tx.vehicle.update({ where: { id: trip.vehicleId }, data: { status: "AVAILABLE" } });
+      const vehicleData: any = { status: "AVAILABLE" };
+      if (nextStatus === "COMPLETED" && extra?.odometerKm !== undefined) {
+        if (trip.vehicle && extra.odometerKm < trip.vehicle.odometerKm) {
+          throw new Error(`New odometer (${extra.odometerKm} km) cannot be less than current odometer (${trip.vehicle.odometerKm} km).`);
+        }
+        vehicleData.odometerKm = extra.odometerKm;
+      }
+
+      const updatedVehicle = await tx.vehicle.update({ where: { id: trip.vehicleId }, data: vehicleData });
       const updatedDriver = await tx.driver.update({ where: { id: trip.driverId }, data: { status: "AVAILABLE" } });
 
       await tx.auditLog.createMany({
@@ -91,6 +104,17 @@ export async function transitionTripStatus(tripId: string, nextStatus: TripStatu
           },
         ],
       });
+
+      if (nextStatus === "COMPLETED" && extra?.fuelLiters !== undefined && extra?.fuelCost !== undefined) {
+        await tx.fuelLog.create({
+          data: {
+            vehicleId: trip.vehicleId,
+            liters: extra.fuelLiters,
+            cost: extra.fuelCost,
+            date: new Date(),
+          }
+        });
+      }
     }
 
     await tx.auditLog.create({
