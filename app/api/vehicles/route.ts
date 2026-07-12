@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
   const rows = await prisma.vehicle.findMany({
     where: {
-      registrationNumber: { contains: q, mode: "insensitive" },
+      registrationNumber: { contains: q },
       ...(status ? { status: status as never } : {}),
       ...(type ? { type } : {}),
     },

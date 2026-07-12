@@ -29,10 +29,10 @@ export async function POST() {
   }
 
   // Eligible pairs exclude ineligible (over-capacity / wrong status) entirely.
-  const pairs = vehicles.flatMap((v: { id: string; maxLoadCapacityKg: number; registrationNumber: string }) =>
+  const pairs = vehicles.flatMap((v) =>
     drivers
-      .filter((d: { id: string; name: string; safetyScore: number; licenseExpiryDate: Date }) => d.licenseExpiryDate.getTime() > Date.now())
-      .map((d: { id: string; name: string; safetyScore: number; licenseExpiryDate: Date }) => ({ vehicle: v, driver: d }))
+      .filter((d) => d.licenseExpiryDate.getTime() > Date.now())
+      .map((d) => ({ vehicle: v, driver: d }))
   );
 
   const greedy = greedyAssignments(trips, pairs);

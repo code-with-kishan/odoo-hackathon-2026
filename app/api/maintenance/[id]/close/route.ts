@@ -25,8 +25,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         entity: "Vehicle",
         entityId: record.vehicleId,
         action: `STATUS_${nextVehicleStatus}`,
-        beforeState: { status: record.vehicle.status },
-        afterState: { status: nextVehicleStatus },
+        beforeState: JSON.stringify({ status: record.vehicle.status }),
+        afterState: JSON.stringify({ status: nextVehicleStatus }),
       },
     }),
   ]);

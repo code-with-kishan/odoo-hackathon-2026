@@ -41,5 +41,5 @@ export async function authenticate(email: string, password: string): Promise<Ses
   const user = await prisma.user.findUnique({ where: { email }, include: { role: true } });
   if (!user) return null;
   if (!compareSync(password, user.passwordHash)) return null;
-  return { id: user.id, email: user.email, role: user.role.name, name: user.name };
+  return { id: user.id, email: user.email, role: user.role.name as RoleName, name: user.name };
 }

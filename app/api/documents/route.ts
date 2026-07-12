@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       entity: "VehicleDocument",
       entityId: doc.id,
       action: "UPLOAD",
-      afterState: { type: doc.type, fileKey, expiresAt: doc.expiresAt.toISOString() },
+      afterState: JSON.stringify({ type: doc.type, fileKey, expiresAt: doc.expiresAt.toISOString() }),
     },
   });
 

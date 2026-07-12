@@ -1,9 +1,11 @@
 import { Bell } from "lucide-react";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import type { RoleName } from "@/lib/domain/enums";
+import { UserMenu } from "@/components/layout/user-menu";
+import type { SessionUser } from "@/lib/auth/session";
 
-export function Topbar({ role }: { role: RoleName }) {
+export function Topbar({ user }: { user: SessionUser }) {
+  const role = user.role;
   return (
     <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-background)] px-6 py-4">
       <div>
@@ -16,6 +18,7 @@ export function Topbar({ role }: { role: RoleName }) {
         <button aria-label="Notifications" className="rounded-[8px] border border-[var(--color-border)] p-2">
           <Bell size={16} />
         </button>
+        <UserMenu user={user} />
       </div>
     </header>
   );

@@ -58,8 +58,8 @@ export async function POST(req: Request) {
         entity: "Vehicle",
         entityId: vehicle.id,
         action: "STATUS_IN_SHOP",
-        beforeState: { status: vehicle.status },
-        afterState: { status: "IN_SHOP" },
+        beforeState: JSON.stringify({ status: vehicle.status }),
+        afterState: JSON.stringify({ status: "IN_SHOP" }),
       },
     }),
   ]);

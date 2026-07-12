@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
   const rows = await prisma.driver.findMany({
     where: {
-      name: { contains: q, mode: "insensitive" },
+      name: { contains: q },
       ...(status ? { status: status as never } : {}),
       ...(category ? { licenseCategory: category } : {}),
     },

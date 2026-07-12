@@ -4,6 +4,8 @@ import { withPermission } from "@/lib/rbac/route-guard";
 import { dispatchTrip, transitionTripStatus } from "@/lib/trips/lifecycle";
 import { tripDraftSchema, validateTripAssignment } from "@/lib/validation/trip";
 
+import type { VehicleStatus, DriverStatus } from "@/lib/domain/enums";
+
 export async function GET() {
   const guard = await withPermission("trip:create");
   if (guard.response) return guard.response;
@@ -38,10 +40,10 @@ export async function POST(req: Request) {
   const validation = validateTripAssignment({
     cargoWeightKg: parsed.data.cargoWeightKg,
     vehicle: vehicle
-      ? { id: vehicle.id, status: vehicle.status, maxLoadCapacityKg: vehicle.maxLoadCapacityKg }
+      ? { id: vehicle.id, status: vehicle.status as VehicleStatus, maxLoadCapacityKg: vehicle.maxLoadCapacityKg }
       : null,
     driver: driver
-      ? { id: driver.id, status: driver.status, licenseExpiryDate: driver.licenseExpiryDate }
+      ? { id: driver.id, status: driver.status as DriverStatus, licenseExpiryDate: driver.licenseExpiryDate }
       : null,
   });
 

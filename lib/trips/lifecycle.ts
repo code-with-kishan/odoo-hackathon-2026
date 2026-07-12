@@ -12,8 +12,8 @@ export async function dispatchTrip(tripId: string, actorUserId: string) {
 
     const validation = validateTripAssignment({
       cargoWeightKg: trip.cargoWeightKg,
-      vehicle: { id: trip.vehicle.id, status: trip.vehicle.status, maxLoadCapacityKg: trip.vehicle.maxLoadCapacityKg },
-      driver: { id: trip.driver.id, status: trip.driver.status, licenseExpiryDate: trip.driver.licenseExpiryDate },
+      vehicle: { id: trip.vehicle.id, status: trip.vehicle.status as VehicleStatus, maxLoadCapacityKg: trip.vehicle.maxLoadCapacityKg },
+      driver: { id: trip.driver.id, status: trip.driver.status as DriverStatus, licenseExpiryDate: trip.driver.licenseExpiryDate },
     });
 
     if (!validation.valid) throw new Error(validation.errors.join(" "));
@@ -28,8 +28,8 @@ export async function dispatchTrip(tripId: string, actorUserId: string) {
         entity: "Trip",
         entityId: trip.id,
         action: "DISPATCH",
-        beforeState: { status: trip.status },
-        afterState: { status: updatedTrip.status },
+        beforeState: JSON.stringify({ status: trip.status }),
+        afterState: JSON.stringify({ status: updatedTrip.status }),
       },
     });
 
@@ -40,16 +40,16 @@ export async function dispatchTrip(tripId: string, actorUserId: string) {
           entity: "Vehicle",
           entityId: updatedVehicle.id,
           action: "STATUS_ON_TRIP",
-          beforeState: { status: trip.vehicle!.status },
-          afterState: { status: updatedVehicle.status },
+          beforeState: JSON.stringify({ status: trip.vehicle!.status }),
+          afterState: JSON.stringify({ status: updatedVehicle.status }),
         },
         {
           actorUserId,
           entity: "Driver",
           entityId: updatedDriver.id,
           action: "STATUS_ON_TRIP",
-          beforeState: { status: trip.driver!.status },
-          afterState: { status: updatedDriver.status },
+          beforeState: JSON.stringify({ status: trip.driver!.status }),
+          afterState: JSON.stringify({ status: updatedDriver.status }),
         },
       ],
     });
@@ -68,7 +68,7 @@ export async function transitionTripStatus(
     const trip = await tx.trip.findUnique({ where: { id: tripId }, include: { vehicle: true, driver: true } });
     if (!trip) throw new Error("Trip not found.");
 
-    if (!canTransition(trip.status, nextStatus)) throw new Error(`Invalid transition from ${trip.status} to ${nextStatus}`);
+    if (!canTransition(trip.status as TripStatus, nextStatus)) throw new Error(`Invalid transition from ${trip.status} to ${nextStatus}`);
 
     const updated = await tx.trip.update({ where: { id: tripId }, data: { status: nextStatus } });
 
@@ -91,16 +91,16 @@ export async function transitionTripStatus(
             entity: "Vehicle",
             entityId: updatedVehicle.id,
             action: "STATUS_AVAILABLE",
-            beforeState: { status: trip.vehicle?.status },
-            afterState: { status: updatedVehicle.status },
+            beforeState: JSON.stringify({ status: trip.vehicle?.status }),
+            afterState: JSON.stringify({ status: updatedVehicle.status }),
           },
           {
             actorUserId,
             entity: "Driver",
             entityId: updatedDriver.id,
             action: "STATUS_AVAILABLE",
-            beforeState: { status: trip.driver?.status },
-            afterState: { status: updatedDriver.status },
+            beforeState: JSON.stringify({ status: trip.driver?.status }),
+            afterState: JSON.stringify({ status: updatedDriver.status }),
           },
         ],
       });
@@ -123,8 +123,8 @@ export async function transitionTripStatus(
         entity: "Trip",
         entityId: trip.id,
         action: `STATUS_${nextStatus}`,
-        beforeState: { status: trip.status },
-        afterState: { status: nextStatus },
+        beforeState: JSON.stringify({ status: trip.status }),
+        afterState: JSON.stringify({ status: nextStatus }),
       },
     });
 
