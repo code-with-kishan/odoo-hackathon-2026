@@ -3,12 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/table";
-import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ReportsCharts } from "@/components/reports/ReportsCharts";
 import { prisma } from "@/lib/db/prisma";
 import { buildReportRows } from "@/lib/reports/export";
 import { Download } from "lucide-react";
-
-const PIE_COLORS = ["#2383E2", "#E8A33D", "#2F9E44", "#E0393E"];
 
 export default async function Page() {
   const vehicles = await prisma.vehicle.findMany({
@@ -69,36 +67,10 @@ export default async function Page() {
           ))}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <h3 className="mb-2 text-[16px] font-medium">Cost breakdown</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={costDonut} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {costDonut.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-          <Card>
-            <h3 className="mb-2 text-[16px] font-medium">Fuel efficiency by vehicle</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={rows.map((r: { registration: string; fuelCost: number }) => ({ name: r.registration, fuel: r.fuelCost }))}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="fuel" fill="var(--color-warning)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
+        <ReportsCharts 
+          costDonut={costDonut} 
+          fuelData={rows.map((r: { registration: string; fuelCost: number }) => ({ name: r.registration, fuel: r.fuelCost }))} 
+        />
 
         {/* ROI table per vehicle */}
         <Card className="p-0">

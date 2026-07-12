@@ -25,6 +25,15 @@ type SessionUser = { id: string; email: string; role: string; name: string } | n
 export function LandingPageClient({ user }: { user: SessionUser }) {
   const [solverRunning, setSolverRunning] = useState(false);
   const [solverStep, setSolverStep] = useState(0);
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
+
+  const demoAccounts = [
+    { role: "System Admin", email: "admin@ironroute.local", password: "Admin123!" },
+    { role: "Fleet Manager", email: "manager@ironroute.local", password: "Manager123!" },
+    { role: "Safety Officer", email: "safety@ironroute.local", password: "Safety123!" },
+    { role: "Financial Analyst", email: "finance@ironroute.local", password: "Finance123!" },
+    { role: "Driver User", email: "driver@ironroute.local", password: "Driver123!" },
+  ];
 
   useEffect(() => {
     if (solverRunning) {
@@ -46,6 +55,31 @@ export function LandingPageClient({ user }: { user: SessionUser }) {
   const runDemoSolver = () => {
     setSolverStep(0);
     setSolverRunning(true);
+  };
+
+  const handleQuickLogin = async (acc: typeof demoAccounts[0]) => {
+    setLoadingRole(acc.role);
+    try {
+      const formData = new FormData();
+      formData.append("email", acc.email);
+      formData.append("password", acc.password);
+
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        window.location.href = "/dashboard";
+      } else {
+        alert("Failed to log in: Invalid credentials");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to connect to authentication API");
+    } finally {
+      setLoadingRole(null);
+    }
   };
 
   return (
@@ -141,6 +175,36 @@ export function LandingPageClient({ user }: { user: SessionUser }) {
             </>
           )}
         </div>
+
+        {/* Quick Developer Login Section */}
+        {!user && (
+          <div className="mt-14 mx-auto max-w-3xl rounded-[20px] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-md relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-[color-mix(in_srgb,var(--color-primary)_4%,transparent)] to-transparent opacity-60 pointer-events-none" />
+            <div className="relative flex flex-col items-center">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-subtle)] uppercase tracking-wider mb-4">
+                <Sparkles size={13} className="text-[var(--color-primary)] animate-pulse" />
+                <span>Developer Sandbox Quick Login</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {demoAccounts.map((acc) => (
+                  <button
+                    key={acc.role}
+                    disabled={loadingRole !== null}
+                    onClick={() => handleQuickLogin(acc)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-background)] text-[12.5px] font-medium text-[var(--color-text-primary)] hover:border-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_4%,transparent)] hover:scale-[1.03] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                  >
+                    {loadingRole === acc.role ? (
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent border-[var(--color-primary)]" />
+                    ) : (
+                      <Sparkles size={11} className="text-[var(--color-primary)]" />
+                    )}
+                    Login as {acc.role}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Floating Preview Cards Group */}
         <div className="relative mt-20 mx-auto max-w-4xl">
@@ -350,7 +414,7 @@ export function LandingPageClient({ user }: { user: SessionUser }) {
                 <div className="mt-4 p-3 rounded-[8px] bg-[var(--color-surface-muted)] text-[12px] border border-[var(--color-border-soft)]">
                   {solverRunning ? (
                     <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
-                      <span className="h-3 w-3 animate-spin rounded-full border border-2 border-t-transparent border-[var(--color-primary)]" />
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-t-transparent border-[var(--color-primary)]" />
                       <span>Computing global minima...</span>
                     </div>
                   ) : solverStep === 3 ? (
