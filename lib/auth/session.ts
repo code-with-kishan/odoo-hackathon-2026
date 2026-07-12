@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { compareSync } from "bcryptjs";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
-import { RoleName } from "@prisma/client";
+import type { RoleName } from "@/lib/domain/enums";
 
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET ?? "ironroute-dev-secret");
 const COOKIE_NAME = "ironroute_session";

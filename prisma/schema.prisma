@@ -3,62 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum RoleName {
-  FLEET_MANAGER
-  DRIVER
-  SAFETY_OFFICER
-  FINANCIAL_ANALYST
-  ADMIN
-}
-
-enum VehicleStatus {
-  AVAILABLE
-  ON_TRIP
-  IN_SHOP
-  RETIRED
-}
-
-enum DriverStatus {
-  AVAILABLE
-  ON_TRIP
-  OFF_DUTY
-  SUSPENDED
-}
-
-enum TripStatus {
-  DRAFT
-  DISPATCHED
-  COMPLETED
-  CANCELLED
-}
-
-enum NotificationType {
-  LICENSE_EXPIRY
-  DOCUMENT_EXPIRY
-  MAINTENANCE_DUE
-  COMPLIANCE_EVENT
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Role {
   id    String   @id @default(cuid())
-  name  RoleName @unique
+  name  String   @unique
   users User[]
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  passwordHash String
-  roleId       String
-  role         Role       @relation(fields: [roleId], references: [id])
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  auditLogs    AuditLog[]
+  id                  String        @id @default(cuid())
+  name                String
+  email               String        @unique
+  passwordHash        String
+  roleId              String
+  role                Role          @relation(fields: [roleId], references: [id])
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  auditLogs           AuditLog[]
+  trips               Trip[]
+  notificationLogs    NotificationLog[]
 }
 
 model Vehicle {
@@ -70,7 +36,7 @@ model Vehicle {
   odometerKm         Float
   acquisitionCost    Float
   region             String
-  status             VehicleStatus     @default(AVAILABLE)
+  status             String            @default("AVAILABLE")
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   trips              Trip[]
@@ -78,6 +44,8 @@ model Vehicle {
   fuelLogs           FuelLog[]
   expenses           Expense[]
   documents          VehicleDocument[]
+
+  @@index([status])
 }
 
 model Driver {
@@ -88,11 +56,13 @@ model Driver {
   licenseExpiryDate DateTime
   contactNumber     String
   safetyScore       Float
-  status            DriverStatus  @default(AVAILABLE)
+  status            String        @default("AVAILABLE")
   region            String
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   trips             Trip[]
+
+  @@index([status])
 }
 
 model Trip {
@@ -101,7 +71,7 @@ model Trip {
   destination       String
   cargoWeightKg     Float
   plannedDistanceKm Float
-  status            TripStatus @default(DRAFT)
+  status            String     @default("DRAFT")
   vehicleId         String?
   vehicle           Vehicle?   @relation(fields: [vehicleId], references: [id])
   driverId          String?
@@ -156,7 +126,7 @@ model NotificationLog {
   id        String           @id @default(cuid())
   userId    String?
   user      User?            @relation(fields: [userId], references: [id])
-  type      NotificationType
+  type      String
   title     String
   body      String
   sentAt    DateTime         @default(now())
@@ -169,7 +139,7 @@ model AuditLog {
   entity      String
   entityId    String
   action      String
-  beforeState Json?
-  afterState  Json?
+  beforeState String?
+  afterState  String?
   createdAt   DateTime @default(now())
 }

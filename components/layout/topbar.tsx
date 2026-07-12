@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import { CommandPalette } from "@/components/layout/command-palette";
-import { RoleName } from "@prisma/client";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import type { RoleName } from "@/lib/domain/enums";
 
 export function Topbar({ role }: { role: RoleName }) {
   return (
@@ -11,6 +12,7 @@ export function Topbar({ role }: { role: RoleName }) {
       </div>
       <div className="flex items-center gap-3">
         <CommandPalette />
+        <ThemeToggle />
         <button aria-label="Notifications" className="rounded-[8px] border border-[var(--color-border)] p-2">
           <Bell size={16} />
         </button>

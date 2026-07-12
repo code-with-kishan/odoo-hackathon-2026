@@ -1,5 +1,7 @@
 import { Driver, Trip, Vehicle } from "@prisma/client";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 type Pair = { vehicle: Vehicle; driver: Driver; score: number };
 
@@ -34,7 +36,8 @@ export function optimizeAssignments(trips: Trip[], pairs: Pair[]) {
   const matrix = buildCostMatrix(trips, pairs);
   const finitePairs = pairs.map((_, idx) => idx).filter((idx) => matrix.some((row) => Number.isFinite(row[idx])));
   const filteredMatrix = matrix.map((row) => finitePairs.map((idx) => (Number.isFinite(row[idx]) ? row[idx] : 1e9)));
-  const pyResult = spawnSync("python3", ["/home/runner/work/odoo-hackathon-2026/odoo-hackathon-2026/lib/optimizer/solver.py"], {
+  const solverPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "solver.py");
+  const pyResult = spawnSync(process.env.PYTHON_BIN ?? "python", [solverPath], {
     input: JSON.stringify({ matrix: filteredMatrix }),
     encoding: "utf8",
   });

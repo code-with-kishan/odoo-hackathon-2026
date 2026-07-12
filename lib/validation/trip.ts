@@ -1,4 +1,14 @@
-import { DriverStatus, VehicleStatus } from "@prisma/client";
+import { z } from "zod";
+import type { DriverStatus, VehicleStatus } from "@/lib/domain/enums";
+
+export const tripDraftSchema = z.object({
+  source: z.string().trim().min(1, "Source is required."),
+  destination: z.string().trim().min(1, "Destination is required."),
+  cargoWeightKg: z.coerce.number().positive("Cargo weight must be greater than zero."),
+  plannedDistanceKm: z.coerce.number().positive("Planned distance must be greater than zero."),
+  vehicleId: z.string().trim().optional().nullable(),
+  driverId: z.string().trim().optional().nullable(),
+});
 
 export type TripValidationInput = {
   cargoWeightKg: number;
@@ -15,7 +25,7 @@ export function validateTripAssignment(input: TripValidationInput): ValidationRe
   if (!input.driver) errors.push("Driver is required.");
 
   if (input.vehicle) {
-    if ([VehicleStatus.IN_SHOP, VehicleStatus.RETIRED, VehicleStatus.ON_TRIP].includes(input.vehicle.status)) {
+    if (["IN_SHOP", "RETIRED", "ON_TRIP"].includes(input.vehicle.status)) {
       errors.push("Selected vehicle is not eligible for dispatch.");
     }
     if (input.cargoWeightKg > input.vehicle.maxLoadCapacityKg) {
@@ -24,7 +34,7 @@ export function validateTripAssignment(input: TripValidationInput): ValidationRe
   }
 
   if (input.driver) {
-    if ([DriverStatus.SUSPENDED, DriverStatus.ON_TRIP].includes(input.driver.status)) {
+    if (["SUSPENDED", "ON_TRIP"].includes(input.driver.status)) {
       errors.push("Selected driver is not eligible for dispatch.");
     }
     if (input.driver.licenseExpiryDate.getTime() < Date.now()) {

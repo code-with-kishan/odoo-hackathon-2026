@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { withPermission } from "@/lib/rbac/route-guard";
 import { dispatchTrip, transitionTripStatus } from "@/lib/trips/lifecycle";
-import { TripStatus } from "@prisma/client";
+import { tripDraftSchema, validateTripAssignment } from "@/lib/validation/trip";
 
 export async function GET() {
   const guard = await withPermission("trip:create");
@@ -15,17 +15,50 @@ export async function POST(req: Request) {
   const guard = await withPermission("trip:create");
   if (guard.response) return guard.response;
   const body = await req.json();
+  const parsed = tripDraftSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", issues: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  let vehicle = null;
+  let driver = null;
+
+  if (parsed.data.vehicleId) {
+    vehicle = await prisma.vehicle.findUnique({ where: { id: parsed.data.vehicleId } });
+  }
+
+  if (parsed.data.driverId) {
+    driver = await prisma.driver.findUnique({ where: { id: parsed.data.driverId } });
+  }
+
+  const validation = validateTripAssignment({
+    cargoWeightKg: parsed.data.cargoWeightKg,
+    vehicle: vehicle
+      ? { id: vehicle.id, status: vehicle.status, maxLoadCapacityKg: vehicle.maxLoadCapacityKg }
+      : null,
+    driver: driver
+      ? { id: driver.id, status: driver.status, licenseExpiryDate: driver.licenseExpiryDate }
+      : null,
+  });
+
+  if (!validation.valid) {
+    return NextResponse.json({ error: "Validation failed", issues: validation.errors }, { status: 400 });
+  }
 
   const trip = await prisma.trip.create({
     data: {
-      source: body.source,
-      destination: body.destination,
-      cargoWeightKg: body.cargoWeightKg,
-      plannedDistanceKm: body.plannedDistanceKm,
-      vehicleId: body.vehicleId ?? null,
-      driverId: body.driverId ?? null,
+      source: parsed.data.source,
+      destination: parsed.data.destination,
+      cargoWeightKg: parsed.data.cargoWeightKg,
+      plannedDistanceKm: parsed.data.plannedDistanceKm,
+      vehicleId: parsed.data.vehicleId ?? null,
+      driverId: parsed.data.driverId ?? null,
       createdById: guard.user!.id,
-      status: body.status ?? TripStatus.DRAFT,
+      status: body.status ?? "DRAFT",
     },
   });
 

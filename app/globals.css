@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -38,4 +39,34 @@
 
 body {
   font-family: Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Utilities required by the PRD */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Small motion tokens for micro-interactions */
+:root {
+  --motion-duration: 180ms;
+  --motion-ease: cubic-bezier(.2,.9,.2,1);
+}
+
+.motion-fade {
+  transition: opacity var(--motion-duration) var(--motion-ease), transform var(--motion-duration) var(--motion-ease);
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-in[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pop-hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  transition: transform var(--motion-duration) var(--motion-ease);
 }

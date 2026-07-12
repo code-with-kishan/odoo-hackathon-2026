@@ -1,12 +1,12 @@
-import { TripStatus } from "@prisma/client";
+import type { TripStatus } from "@/lib/domain/enums";
 
 export const transitionMap: Record<TripStatus, TripStatus[]> = {
-  DRAFT: [TripStatus.DISPATCHED, TripStatus.CANCELLED],
-  DISPATCHED: [TripStatus.COMPLETED, TripStatus.CANCELLED],
+  DRAFT: ["DISPATCHED", "CANCELLED"],
+  DISPATCHED: ["COMPLETED", "CANCELLED"],
   COMPLETED: [],
   CANCELLED: [],
 };
 
 export function canTransition(from: TripStatus, to: TripStatus) {
-  return transitionMap[from].includes(to);
+  return transitionMap[from]?.includes(to) ?? false;
 }

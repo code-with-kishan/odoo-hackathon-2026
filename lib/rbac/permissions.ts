@@ -1,4 +1,4 @@
-import { RoleName } from "@prisma/client";
+import type { RoleName } from "@/lib/domain/enums";
 
 export type Permission =
   | "trip:create"

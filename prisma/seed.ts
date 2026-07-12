@@ -1,4 +1,4 @@
-import { PrismaClient, RoleName, VehicleStatus, DriverStatus, TripStatus, NotificationType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { hashSync } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -17,9 +17,9 @@ async function main() {
   await prisma.role.deleteMany();
 
   const roles = await Promise.all(
-    Object.values(RoleName).map((name) => prisma.role.create({ data: { name } }))
+    ["FLEET_MANAGER", "DRIVER", "SAFETY_OFFICER", "FINANCIAL_ANALYST", "ADMIN"].map((name) => prisma.role.create({ data: { name } }))
   );
-  const roleMap = Object.fromEntries(roles.map((r) => [r.name, r.id]));
+  const roleMap = Object.fromEntries(roles.map((r: any) => [r.name, r.id]));
 
   const admin = await prisma.user.create({
     data: {
@@ -41,7 +41,7 @@ async function main() {
 
   const vehicles = await Promise.all(
     Array.from({ length: 12 }, (_, idx) => {
-      const status = idx === 1 ? VehicleStatus.IN_SHOP : idx % 5 === 0 ? VehicleStatus.ON_TRIP : VehicleStatus.AVAILABLE;
+      const status = idx === 1 ? "IN_SHOP" : idx % 5 === 0 ? "ON_TRIP" : "AVAILABLE";
       return prisma.vehicle.create({
         data: {
           registrationNumber: `IR-${100 + idx}`,
@@ -68,7 +68,7 @@ async function main() {
           contactNumber: `+919999000${idx}`,
           safetyScore: 70 + idx * 3,
           region: idx % 2 === 0 ? "North" : "South",
-          status: idx === 3 ? DriverStatus.SUSPENDED : idx === 4 ? DriverStatus.ON_TRIP : DriverStatus.AVAILABLE,
+          status: idx === 3 ? "SUSPENDED" : idx === 4 ? "ON_TRIP" : "AVAILABLE",
         },
       })
     )
@@ -97,15 +97,77 @@ async function main() {
       destination: "Mumbai",
       cargoWeightKg: 450,
       plannedDistanceKm: 160,
-      status: TripStatus.DRAFT,
+      status: "DRAFT",
       createdById: admin.id,
     },
+  });
+
+  // Phase 5 acceptance: ≥2 (here 3) pending trips so the batch optimizer
+  // produces a fleet-wide optimal assignment for the staged comparison demo.
+  await prisma.trip.createMany({
+    data: [
+      {
+        source: "Pune",
+        destination: "Nashik",
+        cargoWeightKg: 600,
+        plannedDistanceKm: 210,
+        status: "DRAFT",
+        createdById: admin.id,
+      },
+      {
+        source: "Mumbai",
+        destination: "Surat",
+        cargoWeightKg: 900,
+        plannedDistanceKm: 290,
+        status: "DRAFT",
+        createdById: admin.id,
+      },
+    ],
+  });
+
+  // Phase 7 acceptance: fuel log history + a seeded anomaly for vehicle IR-100.
+  // Baseline efficiency for IR-100 hovers ~8 L/100km; the last entry spikes to
+  // ~20 L/100km, which the z-score anomaly detector must flag with the deviation.
+  const fuelVehicle = vehicles[0];
+  const fuelDates = [70, 56, 42, 28, 14, 7].map((d) => new Date(Date.now() - d * 24 * 3600 * 1000));
+  const fuelEntries = [
+    { liters: 40, cost: 4400, date: fuelDates[0] }, // 500km -> 8.0 L/100km (baseline)
+    { liters: 38, cost: 4180, date: fuelDates[1] }, // 475km -> 8.0
+    { liters: 42, cost: 4620, date: fuelDates[2] }, // 525km -> 8.0
+    { liters: 39, cost: 4290, date: fuelDates[3] }, // 487km -> 8.0
+    { liters: 41, cost: 4510, date: fuelDates[4] }, // 512km -> 8.0
+    { liters: 60, cost: 6600, date: fuelDates[5] }, // 300km -> 20.0 (ANOMALY)
+  ];
+  await prisma.fuelLog.createMany({
+    data: fuelEntries.map((f) => ({ vehicleId: fuelVehicle.id, ...f })),
+  });
+
+  // Phase 7 acceptance: maintenance history for a vehicle so the linear
+  // regression predicts the next service window. Older closed records + the
+  // open record already created for IR-101 give the regression real signal.
+  await prisma.maintenanceLog.createMany({
+    data: [
+      {
+        vehicleId: vehicles[0].id,
+        description: "Oil change",
+        isOpen: false,
+        openedAt: new Date(Date.now() - 220 * 24 * 3600 * 1000),
+        closedAt: new Date(Date.now() - 215 * 24 * 3600 * 1000),
+      },
+      {
+        vehicleId: vehicles[0].id,
+        description: "Tire rotation",
+        isOpen: false,
+        openedAt: new Date(Date.now() - 130 * 24 * 3600 * 1000),
+        closedAt: new Date(Date.now() - 128 * 24 * 3600 * 1000),
+      },
+    ],
   });
 
   await prisma.notificationLog.create({
     data: {
       userId: admin.id,
-      type: NotificationType.DOCUMENT_EXPIRY,
+      type: "DOCUMENT_EXPIRY",
       title: "Document expiring soon",
       body: "Insurance for IR-100 expires within 7 days.",
     },

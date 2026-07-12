@@ -1,16 +1,11 @@
-import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
-import { getCurrentRole } from "@/lib/auth/current-user";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth/session";
 
+// The dashboard page itself renders <AppShell> (sidebar + topbar + auth guard).
+// This layout only enforces the auth redirect so visiting /dashboard while
+// logged out sends the user to /login instead of rendering a shell with no user.
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const role = await getCurrentRole();
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar role={role} />
-      <div className="flex min-h-screen flex-1 flex-col">
-        <Topbar role={role} />
-        <main className="mx-auto w-full max-w-[1280px] flex-1 p-6">{children}</main>
-      </div>
-    </div>
-  );
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+  return <>{children}</>;
 }
