@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  FLEET_MANAGER
+  DRIVER
+  SAFETY_OFFICER
+  FINANCIAL_ANALYST
+  ADMIN
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+  SUSPENDED
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  LICENSE_EXPIRY
+  DOCUMENT_EXPIRY
+  MAINTENANCE_DUE
+  COMPLIANCE_EVENT
+}
+
+model Role {
+  id    String   @id @default(cuid())
+  name  RoleName @unique
+  users User[]
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model Vehicle {
+  id                 String            @id @default(cuid())
+  registrationNumber String            @unique
+  nameModel          String
+  type               String
+  maxLoadCapacityKg  Float
+  odometerKm         Float
+  acquisitionCost    Float
+  region             String
+  status             VehicleStatus     @default(AVAILABLE)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  trips              Trip[]
+  maintenanceLogs    MaintenanceLog[]
+  fuelLogs           FuelLog[]
+  expenses           Expense[]
+  documents          VehicleDocument[]
+}
+
+model Driver {
+  id                String        @id @default(cuid())
+  name              String
+  licenseNumber     String        @unique
+  licenseCategory   String
+  licenseExpiryDate DateTime
+  contactNumber     String
+  safetyScore       Float
+  status            DriverStatus  @default(AVAILABLE)
+  region            String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  trips             Trip[]
+}
+
+model Trip {
+  id                String     @id @default(cuid())
+  source            String
+  destination       String
+  cargoWeightKg     Float
+  plannedDistanceKm Float
+  status            TripStatus @default(DRAFT)
+  vehicleId         String?
+  vehicle           Vehicle?   @relation(fields: [vehicleId], references: [id])
+  driverId          String?
+  driver            Driver?    @relation(fields: [driverId], references: [id])
+  createdById       String
+  createdBy         User       @relation(fields: [createdById], references: [id])
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([status])
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  description String
+  isOpen      Boolean  @default(true)
+  openedAt    DateTime @default(now())
+  closedAt    DateTime?
+}
+
+model FuelLog {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  liters    Float
+  cost      Float
+  date      DateTime
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  category  String
+  amount    Float
+  date      DateTime
+}
+
+model VehicleDocument {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  type        String
+  fileKey     String
+  expiresAt   DateTime
+  uploadedAt  DateTime @default(now())
+}
+
+model NotificationLog {
+  id        String           @id @default(cuid())
+  userId    String?
+  user      User?            @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  body      String
+  sentAt    DateTime         @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  actor       User     @relation(fields: [actorUserId], references: [id])
+  entity      String
+  entityId    String
+  action      String
+  beforeState Json?
+  afterState  Json?
+  createdAt   DateTime @default(now())
+}
