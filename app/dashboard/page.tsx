@@ -3,14 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { AppShell } from "@/components/layout/app-shell";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentRole } from "@/lib/auth/current-user";
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
-const trendData = [
-  { month: "Jan", util: 62, cost: 12 },
-  { month: "Feb", util: 68, cost: 11 },
-  { month: "Mar", util: 71, cost: 14 },
-  { month: "Apr", util: 75, cost: 13 },
-];
+import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 
 function formatCount(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
@@ -80,34 +73,7 @@ export default async function DashboardPage() {
           </Card>
         ))}
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <h3 className="mb-2 text-[16px] font-medium">Utilization trend</h3>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="util" stroke="var(--color-primary)" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-        <Card>
-          <h3 className="mb-2 text-[16px] font-medium">Operational cost index</h3>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trendData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="cost" fill="var(--color-warning)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-        </div>
+        <DashboardCharts />
         <Card>
           <div className="flex items-center justify-between">
             <h3 className="text-[16px] font-medium">Fleet snapshot</h3>
